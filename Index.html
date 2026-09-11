@@ -1,0 +1,1523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#080b12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Conflict Monitor">
+
+  <title>Global Conflict Monitor V2</title>
+
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+
+  <style>
+    :root {
+      --bg: #080b12;
+      --panel: #111722;
+      --panel2: #171e2b;
+      --border: #283242;
+      --text: #f2f5f8;
+      --muted: #8e9aaa;
+      --green: #42d392;
+      --amber: #f0b94a;
+      --red: #ef5b68;
+      --blue: #62a8ff;
+      --radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+
+      background: var(--bg);
+      color: var(--text);
+      font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "SF Pro Display",
+        "Segoe UI",
+        sans-serif;
+
+      -webkit-font-smoothing: antialiased;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+
+      padding: 18px 20px 14px;
+
+      background: rgba(8, 11, 18, 0.92);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-row {
+      max-width: 1100px;
+      margin: auto;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 16px;
+      font-weight: 750;
+      letter-spacing: -0.2px;
+    }
+
+    .version {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 3px;
+    }
+
+    .system-state {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .hero {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: linear-gradient(
+        145deg,
+        var(--panel),
+        #0d131d
+      );
+
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 8px 0 4px;
+      font-size: clamp(28px, 6vw, 48px);
+      line-height: 0.95;
+      letter-spacing: -1.8px;
+    }
+
+    h2 {
+      margin: 0 0 16px;
+      font-size: 17px;
+    }
+
+    .risk-number {
+      font-size: 76px;
+      line-height: 0.95;
+      font-weight: 800;
+      letter-spacing: -4px;
+      margin: 20px 0 8px;
+    }
+
+    .risk-label {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .8px;
+    }
+
+    .distance {
+      margin-top: 20px;
+    }
+
+    .distance-bar,
+    .track-bar {
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: #242c38;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .distance-fill,
+    .track-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: inherit;
+      transition: width .35s ease;
+    }
+
+    .distance-copy {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 7px;
+    }
+
+    .section {
+      margin-top: 20px;
+    }
+
+    .tracks {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+    }
+
+    @media (max-width: 800px) {
+      .tracks {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 430px) {
+      .tracks {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .track-title {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .track-value {
+      font-size: 28px;
+      font-weight: 800;
+      margin-top: 6px;
+    }
+
+    .track-fill {
+      background: var(--blue);
+    }
+
+    .assessment {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .assessment {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+
+    .metric-row:last-child {
+      border-bottom: 0;
+    }
+
+    .metric-name {
+      color: var(--muted);
+    }
+
+    .metric-value {
+      font-weight: 750;
+      text-align: right;
+    }
+
+    .perspectives {
+      display: grid;
+      gap: 10px;
+    }
+
+    .perspective {
+      padding: 13px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      border-radius: 13px;
+    }
+
+    .perspective-name {
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .perspective-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .pause {
+      display: none;
+      border: 1px solid var(--red);
+      background: rgba(239, 91, 104, .08);
+    }
+
+    .pause.active {
+      display: block;
+    }
+
+    .pause-title {
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 850;
+      letter-spacing: .5px;
+    }
+
+    .pause ul {
+      color: #c8ced7;
+      font-size: 13px;
+      line-height: 1.6;
+      padding-left: 20px;
+      margin-bottom: 0;
+    }
+
+    .gate {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+      padding: 15px;
+      border-radius: 13px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+    }
+
+    .gate strong {
+      display: block;
+      font-size: 13px;
+    }
+
+    .gate span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .lock {
+      font-size: 20px;
+    }
+
+    form {
+      display: grid;
+      gap: 14px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #0b1018;
+      color: var(--text);
+      padding: 12px;
+      font: inherit;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .checkboxes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    @media (max-width: 550px) {
+      .checkboxes {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+
+      padding: 11px;
+      border-radius: 11px;
+      background: var(--panel2);
+      border: 1px solid var(--border);
+      margin: 0;
+    }
+
+    button {
+      border: 0;
+      border-radius: 13px;
+      padding: 13px 16px;
+
+      background: var(--blue);
+      color: #07101d;
+
+      font-weight: 800;
+      font-size: 13px;
+
+      cursor: pointer;
+    }
+
+    button:active {
+      transform: scale(.98);
+    }
+
+    .secondary {
+      background: var(--panel2);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .timeline {
+      display: grid;
+      gap: 10px;
+    }
+
+    .event {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: var(--panel);
+    }
+
+    .event-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .event-name {
+      font-weight: 750;
+      font-size: 13px;
+    }
+
+    .event-score {
+      font-weight: 850;
+      font-size: 13px;
+    }
+
+    .event-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 8px;
+    }
+
+    .tag {
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 4px 7px;
+      font-size: 10px;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      padding: 25px;
+    }
+
+    footer {
+      max-width: 1100px;
+      margin: 25px auto;
+      padding: 0 20px 30px;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <div class="header-row">
+    <div>
+      <div class="brand">GLOBAL CONFLICT MONITOR</div>
+      <div class="version">V2 · Decision-support prototype</div>
+    </div>
+
+    <div id="systemState" class="system-state">
+      NORMAL MONITORING
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- HERO -->
+  <section class="hero">
+
+    <div class="card">
+      <div class="eyebrow">Global escalation index</div>
+
+      <div id="riskNumber" class="risk-number">0%</div>
+
+      <div id="riskLabel" class="risk-label">
+        NORMAL MONITORING
+      </div>
+
+      <div class="distance">
+        <div class="eyebrow">
+          Distance to escalation threshold
+        </div>
+
+        <div class="distance-bar">
+          <div id="distanceFill" class="distance-fill"></div>
+        </div>
+
+        <div class="distance-copy">
+          <span>0 — immediate threshold</span>
+          <strong id="distanceValue">100%</strong>
+          <span>100 — maximum margin</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="eyebrow">Attribution confidence</div>
+
+      <div id="attributionValue"
+           class="risk-number"
+           style="font-size:55px">
+        0%
+      </div>
+
+      <div class="metric-row">
+        <span class="metric-name">
+          Attribution uncertainty
+        </span>
+
+        <strong id="uncertaintyValue">
+          100%
+        </strong>
+      </div>
+
+      <div class="metric-row">
+        <span class="metric-name">
+          Human authorisation
+        </span>
+
+        <strong>REQUIRED</strong>
+      </div>
+
+      <div class="metric-row">
+        <span class="metric-name">
+          Autonomous retaliation
+        </span>
+
+        <strong style="color:var(--red)">
+          PROHIBITED
+        </strong>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- RISK TRACKS -->
+  <section class="section">
+
+    <div class="card">
+
+      <div class="eyebrow">Risk tracks</div>
+      <h2>Escalation domains</h2>
+
+      <div class="tracks">
+
+        <div class="card">
+          <div class="track-title">Military</div>
+          <div id="militaryValue" class="track-value">0%</div>
+          <div class="track-bar">
+            <div id="militaryBar" class="track-fill"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="track-title">Cyber</div>
+          <div id="cyberValue" class="track-value">0%</div>
+          <div class="track-bar">
+            <div id="cyberBar" class="track-fill"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="track-title">Infrastructure</div>
+          <div id="infraValue" class="track-value">0%</div>
+          <div class="track-bar">
+            <div id="infraBar" class="track-fill"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="track-title">AI-mediated</div>
+          <div id="aiValue" class="track-value">0%</div>
+          <div class="track-bar">
+            <div id="aiBar" class="track-fill"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- VERIFICATION PAUSE -->
+  <section class="section">
+
+    <div id="pauseCard" class="card pause">
+
+      <div class="pause-title">
+        ⚠ MANDATORY VERIFICATION PAUSE
+      </div>
+
+      <p>
+        The prototype has crossed its configurable escalation
+        threshold. No consequential response should be authorised
+        solely from this assessment.
+      </p>
+
+      <ul>
+        <li>Preserve evidence and collection records.</li>
+        <li>Seek independent attribution verification.</li>
+        <li>Open crisis communications channels.</li>
+        <li>Model second- and third-order consequences.</li>
+        <li>Require explicit human authorisation.</li>
+      </ul>
+
+    </div>
+
+  </section>
+
+  <!-- ASSESSMENT -->
+  <section class="section">
+
+    <div class="assessment">
+
+      <div class="card">
+
+        <div class="eyebrow">Assessment</div>
+        <h2>Current analytical state</h2>
+
+        <div class="metric-row">
+          <span class="metric-name">
+            Escalation probability
+          </span>
+
+          <strong id="probability">
+            0%
+          </strong>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-name">
+            Attribution confidence
+          </span>
+
+          <strong id="assessmentAttribution">
+            0%
+          </strong>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-name">
+            Attribution uncertainty
+          </span>
+
+          <strong id="assessmentUncertainty">
+            100%
+          </strong>
+        </div>
+
+        <div class="metric-row">
+          <span class="metric-name">
+            Autonomous response
+          </span>
+
+          <strong style="color:var(--red)">
+            NO
+          </strong>
+        </div>
+
+        <div style="margin-top:16px">
+          <div class="gate">
+            <div>
+              <strong>Human response gate</strong>
+              <span>
+                AI recommendation cannot authorise retaliation.
+              </span>
+            </div>
+
+            <div class="lock">🔒</div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div class="eyebrow">
+          Independent perspectives
+        </div>
+
+        <h2>Five analytical lenses</h2>
+
+        <div class="perspectives">
+
+          <div class="perspective">
+            <div class="perspective-name">
+              Intelligence
+            </div>
+
+            <div class="perspective-text">
+              Indicators may support further investigation,
+              but should not be treated as certainty.
+            </div>
+          </div>
+
+          <div class="perspective">
+            <div class="perspective-name">
+              Skeptic
+            </div>
+
+            <div class="perspective-text">
+              Test false-flag, spoofing, collection-error
+              and alternative explanations.
+            </div>
+          </div>
+
+          <div class="perspective">
+            <div class="perspective-name">
+              Adversary
+            </div>
+
+            <div class="perspective-text">
+              Model how other actors may interpret defensive
+              or retaliatory actions.
+            </div>
+          </div>
+
+          <div class="perspective">
+            <div class="perspective-name">
+              Escalation
+            </div>
+
+            <div class="perspective-text">
+              Estimate second- and third-order consequences
+              of each potential response.
+            </div>
+          </div>
+
+          <div class="perspective">
+            <div class="perspective-name">
+              De-escalation
+            </div>
+
+            <div class="perspective-text">
+              Identify containment, communication and
+              verification options.
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <!-- EVENT SIMULATOR -->
+  <section class="section">
+
+    <div class="card">
+
+      <div class="eyebrow">
+        Local event simulator
+      </div>
+
+      <h2>Record an incident</h2>
+
+      <form id="eventForm">
+
+        <div>
+          <label for="description">
+            Event description
+          </label>
+
+          <input
+            id="description"
+            type="text"
+            placeholder="Example: Major cross-border incident"
+            required
+          >
+        </div>
+
+        <div>
+          <label for="severity">
+            Severity: <span id="severityDisplay">5</span>/10
+          </label>
+
+          <input
+            id="severity"
+            type="range"
+            min="1"
+            max="10"
+            value="5"
+          >
+        </div>
+
+        <div>
+          <label for="attribution">
+            Attribution confidence:
+            <span id="attributionDisplay">50</span>%
+          </label>
+
+          <input
+            id="attribution"
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+          >
+        </div>
+
+        <div class="checkboxes">
+
+          <label class="check">
+            <input
+              id="criticalInfrastructure"
+              type="checkbox"
+            >
+            Critical infrastructure
+          </label>
+
+          <label class="check">
+            <input
+              id="crossBorder"
+              type="checkbox"
+            >
+            Cross-border
+          </label>
+
+          <label class="check">
+            <input
+              id="casualties"
+              type="checkbox"
+            >
+            Casualties
+          </label>
+
+        </div>
+
+        <button type="submit">
+          Analyse & Record Event
+        </button>
+
+      </form>
+
+    </div>
+
+  </section>
+
+  <!-- TIMELINE -->
+  <section class="section">
+
+    <div class="card">
+
+      <div class="eyebrow">
+        Local event timeline
+      </div>
+
+      <h2>Recent incidents</h2>
+
+      <div id="timeline" class="timeline">
+        <div class="empty">
+          No events recorded.
+        </div>
+      </div>
+
+      <button
+        id="clearEvents"
+        class="secondary"
+        style="margin-top:14px"
+      >
+        Clear local timeline
+      </button>
+
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  GLOBAL CONFLICT MONITOR V2 · Prototype only.
+  Uses synthetic/local data. Not connected to military,
+  weapons, intelligence or offensive cyber systems.
+  The scoring model is a transparent demonstration heuristic,
+  not a validated prediction model.
+</footer>
+
+<script>
+"use strict";
+
+/*
+ * GLOBAL CONFLICT MONITOR V2
+ *
+ * This prototype deliberately uses a transparent heuristic.
+ * It is NOT a predictive military model.
+ *
+ * No external APIs are required.
+ * Events are stored only in localStorage.
+ */
+
+const STORAGE_KEY = "globalConflictMonitorV2.events";
+
+const state = {
+  events: []
+};
+
+/* -----------------------------
+   Utility functions
+----------------------------- */
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function percent(value) {
+  return `${Math.round(value)}%`;
+}
+
+function riskColour(score) {
+  if (score >= 70) {
+    return "var(--red)";
+  }
+
+  if (score >= 45) {
+    return "var(--amber)";
+  }
+
+  return "var(--green)";
+}
+
+function riskStatus(score) {
+  if (score >= 70) {
+    return "MANDATORY VERIFICATION PAUSE";
+  }
+
+  if (score >= 45) {
+    return "HEIGHTENED REVIEW";
+  }
+
+  return "NORMAL MONITORING";
+}
+
+/* -----------------------------
+   Risk model
+----------------------------- */
+
+function calculateRisk(event) {
+
+  /*
+   * Transparent demonstration heuristic:
+   *
+   * severity:
+   *   maximum contribution = 80
+   *
+   * critical infrastructure:
+   *   +20
+   *
+   * cross-border:
+   *   +15
+   *
+   * casualties:
+   *   +20
+   *
+   * attribution:
+   *   modifies confidence in the signal.
+   */
+
+  const base =
+      (event.severity * 8)
+    + (event.criticalInfrastructure ? 20 : 0)
+    + (event.crossBorder ? 15 : 0)
+    + (event.casualties ? 20 : 0);
+
+  const attributionModifier =
+    0.45 + (event.attribution * 0.55);
+
+  const score = clamp(
+    Math.round(base * attributionModifier),
+    0,
+    100
+  );
+
+  const uncertainty =
+    clamp(1 - event.attribution, 0, 1);
+
+  return {
+    score,
+    uncertainty
+  };
+}
+
+/* -----------------------------
+   Track model
+----------------------------- */
+
+function calculateTracks(score) {
+
+  return {
+    military: clamp(score * 0.90, 0, 99),
+    cyber: clamp(score * 1.05, 0, 99),
+    infrastructure: clamp(score * 0.72, 0, 99),
+    ai: clamp(score * 0.60, 0, 99)
+  };
+}
+
+/* -----------------------------
+   Local storage
+----------------------------- */
+
+function loadEvents() {
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) {
+      state.events = [];
+      return;
+    }
+
+    const parsed = JSON.parse(raw);
+
+    if (Array.isArray(parsed)) {
+      state.events = parsed.slice(0, 10);
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Unable to load local events:",
+      error
+    );
+
+    state.events = [];
+  }
+}
+
+function saveEvents() {
+
+  localStorage.setItem(
+    STORAGE_KEY,
+    JSON.stringify(state.events.slice(0, 10))
+  );
+}
+
+/* -----------------------------
+   Dashboard
+----------------------------- */
+
+function updateDashboard(event) {
+
+  const risk = calculateRisk(event);
+  const tracks = calculateTracks(risk.score);
+
+  const score = risk.score;
+
+  /*
+   * "Distance" is intentionally expressed as
+   * remaining distance before the 70% verification
+   * threshold rather than a prediction of future time.
+   */
+
+  const threshold = 70;
+
+  const distance =
+    score >= threshold
+      ? 0
+      : Math.round(
+          ((threshold - score) / threshold) * 100
+        );
+
+  document
+    .getElementById("riskNumber")
+    .textContent = percent(score);
+
+  document
+    .getElementById("riskLabel")
+    .textContent = riskStatus(score);
+
+  document
+    .getElementById("riskNumber")
+    .style.color = riskColour(score);
+
+  document
+    .getElementById("riskLabel")
+    .style.color = riskColour(score);
+
+  document
+    .getElementById("distanceValue")
+    .textContent = percent(distance);
+
+  const distanceFill =
+    document.getElementById("distanceFill");
+
+  distanceFill.style.width =
+    `${100 - distance}%`;
+
+  distanceFill.style.background =
+    riskColour(score);
+
+  /*
+   * Attribution
+   */
+
+  const attribution =
+    Math.round(event.attribution * 100);
+
+  const uncertainty =
+    Math.round(risk.uncertainty * 100);
+
+  document
+    .getElementById("attributionValue")
+    .textContent = percent(attribution);
+
+  document
+    .getElementById("uncertaintyValue")
+    .textContent = percent(uncertainty);
+
+  document
+    .getElementById("assessmentAttribution")
+    .textContent = percent(attribution);
+
+  document
+    .getElementById("assessmentUncertainty")
+    .textContent = percent(uncertainty);
+
+  document
+    .getElementById("probability")
+    .textContent = percent(score);
+
+  /*
+   * Tracks
+   */
+
+  setTrack(
+    "militaryValue",
+    "militaryBar",
+    tracks.military
+  );
+
+  setTrack(
+    "cyberValue",
+    "cyberBar",
+    tracks.cyber
+  );
+
+  setTrack(
+    "infraValue",
+    "infraBar",
+    tracks.infrastructure
+  );
+
+  setTrack(
+    "aiValue",
+    "aiBar",
+    tracks.ai
+  );
+
+  /*
+   * System state
+   */
+
+  const systemState =
+    document.getElementById("systemState");
+
+  systemState.textContent =
+    riskStatus(score);
+
+  systemState.style.color =
+    riskColour(score);
+
+  systemState.style.borderColor =
+    riskColour(score);
+
+  /*
+   * Verification pause
+   */
+
+  const pause =
+    document.getElementById("pauseCard");
+
+  if (score >= threshold) {
+    pause.classList.add("active");
+  } else {
+    pause.classList.remove("active");
+  }
+}
+
+function setTrack(valueId, barId, value) {
+
+  const rounded =
+    Math.round(value);
+
+  document
+    .getElementById(valueId)
+    .textContent = percent(rounded);
+
+  document
+    .getElementById(barId)
+    .style.width = `${rounded}%`;
+}
+
+/* -----------------------------
+   Timeline
+----------------------------- */
+
+function renderTimeline() {
+
+  const container =
+    document.getElementById("timeline");
+
+  if (!state.events.length) {
+
+    container.innerHTML =
+      `<div class="empty">
+        No events recorded.
+       </div>`;
+
+    return;
+  }
+
+  container.innerHTML =
+    state.events
+      .map((event) => {
+
+        const risk =
+          calculateRisk(event);
+
+        const colour =
+          riskColour(risk.score);
+
+        const date =
+          new Date(event.timestamp);
+
+        const dateString =
+          date.toLocaleString();
+
+        return `
+          <article class="event">
+
+            <div class="event-head">
+
+              <div class="event-name">
+                ${escapeHtml(event.description)}
+              </div>
+
+              <div
+                class="event-score"
+                style="color:${colour}"
+              >
+                ${risk.score}%
+              </div>
+
+            </div>
+
+            <div class="event-meta">
+
+              <span class="tag">
+                Severity ${event.severity}/10
+              </span>
+
+              <span class="tag">
+                Attribution
+                ${Math.round(event.attribution * 100)}%
+              </span>
+
+              ${
+                event.criticalInfrastructure
+                  ? `<span class="tag">
+                       Infrastructure
+                     </span>`
+                  : ""
+              }
+
+              ${
+                event.crossBorder
+                  ? `<span class="tag">
+                       Cross-border
+                     </span>`
+                  : ""
+              }
+
+              ${
+                event.casualties
+                  ? `<span class="tag">
+                       Casualties
+                     </span>`
+                  : ""
+              }
+
+              <span class="tag">
+                ${dateString}
+              </span>
+
+            </div>
+
+          </article>
+        `;
+      })
+      .join("");
+}
+
+function escapeHtml(value) {
+
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* -----------------------------
+   Form handling
+----------------------------- */
+
+const severity =
+  document.getElementById("severity");
+
+const attribution =
+  document.getElementById("attribution");
+
+severity.addEventListener(
+  "input",
+  () => {
+
+    document
+      .getElementById("severityDisplay")
+      .textContent = severity.value;
+  }
+);
+
+attribution.addEventListener(
+  "input",
+  () => {
+
+    document
+      .getElementById("attributionDisplay")
+      .textContent =
+        attribution.value;
+  }
+);
+
+document
+  .getElementById("eventForm")
+  .addEventListener(
+    "submit",
+    (event) => {
+
+      event.preventDefault();
+
+      const newEvent = {
+
+        id:
+          crypto.randomUUID
+            ? crypto.randomUUID()
+            : String(Date.now()),
+
+        description:
+          document
+            .getElementById("description")
+            .value
+            .trim(),
+
+        severity:
+          Number(severity.value),
+
+        attribution:
+          Number(attribution.value) / 100,
+
+        criticalInfrastructure:
+          document
+            .getElementById("criticalInfrastructure")
+            .checked,
+
+        crossBorder:
+          document
+            .getElementById("crossBorder")
+            .checked,
+
+        casualties:
+          document
+            .getElementById("casualties")
+            .checked,
+
+        timestamp:
+          new Date().toISOString()
+      };
+
+      const risk =
+        calculateRisk(newEvent);
+
+      state.events.unshift(newEvent);
+
+      /*
+       * Keep local history deliberately small.
+       */
+      state.events =
+        state.events.slice(0, 10);
+
+      saveEvents();
+      renderTimeline();
+      updateDashboard(newEvent);
+
+      event.target.reset();
+
+      severity.value = 5;
+      attribution.value = 50;
+
+      document
+        .getElementById("severityDisplay")
+        .textContent = "5";
+
+      document
+        .getElementById("attributionDisplay")
+        .textContent = "50";
+
+      console.log(
+        "Event assessment:",
+        risk
+      );
+    }
+  );
+
+/* -----------------------------
+   Clear timeline
+----------------------------- */
+
+document
+  .getElementById("clearEvents")
+  .addEventListener(
+    "click",
+    () => {
+
+      const confirmed =
+        confirm(
+          "Delete all locally stored events?"
+        );
+
+      if (!confirmed) {
+        return;
+      }
+
+      state.events = [];
+
+      saveEvents();
+      renderTimeline();
+
+      /*
+       * Return dashboard to neutral state.
+       */
+
+      const neutralEvent = {
+
+        severity: 0,
+        attribution: 0,
+        criticalInfrastructure: false,
+        crossBorder: false,
+        casualties: false
+      };
+
+      updateDashboard(neutralEvent);
+    }
+  );
+
+/* -----------------------------
+   Initialise
+----------------------------- */
+
+loadEvents();
+renderTimeline();
+
+if (state.events.length) {
+
+  updateDashboard(
+    state.events[0]
+  );
+
+} else {
+
+  updateDashboard({
+
+    severity: 0,
+    attribution: 0,
+    criticalInfrastructure: false,
+    crossBorder: false,
+    casualties: false
+
+  });
+}
+
+</script>
+
+</body>
+</html>
